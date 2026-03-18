@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="ab-bank-customer-check-balance-suite.xml" />
+	<munit:test name="get:\checkBalance:ab-bank-customer-check-wrong-acct-number" doc:id="08dd4421-2399-48cb-9a6b-8275ee91e1c2" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select-AccNum &amp; Bank" doc:id="c0ba41da-7f6c-4ad3-a170-ce9090366022" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5244a5e0-cca3-4a43-b689-f494bf311dc9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongacctnumber\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongacctnumber\mock_variable_.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongacctnumber\mock_variable_1.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="d2954579-4f7a-4102-8f25-b3a8cc5e5765" >
+				<munit:payload value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongacctnumber\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongacctnumber\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongacctnumber\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\checkBalance:ab-bank-customer-check-balance-config" doc:id="0e55cd35-f32b-4404-9ce4-bbf3b5e570d3" name="get:\checkBalance:ab-bank-customer-check-balance-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="d08f140e-80d9-4e11-99ba-c5d684bbac94" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getcheckBalanceabbankcustomercheckwrongacctnumber::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get:\checkBalance:ab-bank-customer-check-wrong-pin" doc:id="6794fc88-9962-4ae8-9076-4bb5c55c157f" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select-AccNum &amp; Bank" doc:id="625bb586-5db9-4169-8598-da52f77c082a" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5244a5e0-cca3-4a43-b689-f494bf311dc9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_1.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Send-Mail-For-Wrong-PIN" doc:id="412e929f-2ec2-47b1-be4d-2c559b985a6b" processor="email:send">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="c46aaec6-331b-4b50-93af-38f968f212ac" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_payload1.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_2.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_3.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="wrongPinAttempt" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_4.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update-Wrong-PIN-Count" doc:id="47e6a152-907d-4af7-86c3-2bc19aba72a2" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="561b00aa-b127-48c6-a084-f9998ebaa521" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_payload2.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_5.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_6.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="wrongPinAttempt" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\mock_variable_7.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="85f5935c-9a77-4353-903f-d88d11b8ccb0" >
+				<munit:payload value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomercheckwrongpin\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\checkBalance:ab-bank-customer-check-balance-config" doc:id="e8d21168-be7b-4c40-bbdc-7398e07709db" name="get:\checkBalance:ab-bank-customer-check-balance-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="5f2d19fb-138f-470b-bc73-cc2e66c66309" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getcheckBalanceabbankcustomercheckwrongpin::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get:\checkBalance:ab-bank-customer-acct-locked" doc:id="e5511876-a99a-4389-86c9-9f3fb3e8f90f" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select-AccNum &amp; Bank" doc:id="501fcb30-58a3-4988-9525-f0b9f375b92c" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5244a5e0-cca3-4a43-b689-f494bf311dc9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_1.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Update-Status-locked" doc:id="0e3cc62a-3562-4832-82c2-bfc27df7212f" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="1976a894-2ebe-42d9-af18-161a33be9883" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_payload1.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_2.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_3.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="wrongPinAttempt" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_4.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock Send-Mail-For-Account-Is-Locked" doc:id="1f81b964-de4c-41a3-a29d-4f7d1343014a" processor="email:send">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="ffef4106-9964-4d23-866a-ab943ffe0f62" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_payload2.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_5.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_6.dwl')]" mediaType="application/json" encoding="UTF-8" />
+						<munit-tools:variable key="wrongPinAttempt" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\mock_variable_7.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="37b0acfa-5fae-4a3d-bb48-b3d49779e83e" >
+				<munit:payload value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctlocked\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\checkBalance:ab-bank-customer-check-balance-config" doc:id="cc48014c-56ad-4d93-a132-c67a8aba45ba" name="get:\checkBalance:ab-bank-customer-check-balance-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="12ffd2c6-744c-43b6-bc59-ace47d1352a7" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getcheckBalanceabbankcustomeracctlocked::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get:\checkBalance:ab-bank-customer-acct-status-locked" doc:id="8ae131b6-53f1-4115-9847-ac20c934a8ef" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select-AccNum &amp; Bank" doc:id="fbf1e177-29d1-4468-8081-9b86cab8ff4b" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5244a5e0-cca3-4a43-b689-f494bf311dc9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomeracctstatuslocked\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctstatuslocked\mock_variable_.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomeracctstatuslocked\mock_variable_1.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="59a5afc1-fd41-4495-87ee-ef62743359b6" >
+				<munit:payload value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctstatuslocked\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctstatuslocked\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomeracctstatuslocked\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\checkBalance:ab-bank-customer-check-balance-config" doc:id="1ea994eb-5ab3-4927-ac8f-4f61b6df1e5b" name="get:\checkBalance:ab-bank-customer-check-balance-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="1f2437fe-6690-474a-9bc7-60cabe11bc37" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getcheckBalanceabbankcustomeracctstatuslocked::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get:\checkBalance:ab-bank-customer-successful" doc:id="d560bc00-33d9-4b81-acd6-344d777014a2" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select-AccNum &amp; Bank" doc:id="7570f154-dcd9-447e-94ef-2369d784caae" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5244a5e0-cca3-4a43-b689-f494bf311dc9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomersuccessful\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomersuccessful\mock_variable_.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomersuccessful\mock_variable_1.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="6664c50e-518e-4855-ad1f-39517af94704" >
+				<munit:payload value="#[readUrl('classpath://getcheckBalanceabbankcustomersuccessful\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getcheckBalanceabbankcustomersuccessful\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomersuccessful\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\checkBalance:ab-bank-customer-check-balance-config" doc:id="1a5c3cfd-4d34-4018-afd0-6ba60e362b6f" name="get:\checkBalance:ab-bank-customer-check-balance-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="f059df16-db82-4bf1-94de-5a1e5e97d78f" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getcheckBalanceabbankcustomersuccessful::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="get:\checkBalance:ab-bank-customer-reset-wrong-pin-count" doc:id="40ecfe24-9ff0-431a-b9e0-263b91a74520" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Select-AccNum &amp; Bank" doc:id="2eaa1e11-ef44-4a67-b446-d6e591883013" processor="db:select">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="5244a5e0-cca3-4a43-b689-f494bf311dc9" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_payload.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_variable_.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_variable_1.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock RESET-Wrong-PIN-Count" doc:id="671c0f58-135f-483c-ba98-5db63f939daf" processor="db:update">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="8a40ea2d-6b20-4c3e-9ba1-986f433f906c" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_payload1.dwl')]" mediaType="application/java" encoding="UTF-8" />
+					<munit-tools:variables >
+						<munit-tools:variable key="total_balance" value="#[output application/java --- readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_variable_2.dwl')]" mediaType="application/java" encoding="UTF-8" />
+						<munit-tools:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_variable_3.dwl')]" />
+						<munit-tools:variable key="inputValues" value="#[output application/json --- readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\mock_variable_4.dwl')]" mediaType="application/json" encoding="UTF-8" />
+					</munit-tools:variables>
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="eb350b58-66db-4a8d-b426-a5101e729206" >
+				<munit:payload value="#[readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\set-event_payload.dwl')]" encoding="UTF-8" />
+				<munit:attributes value="#[readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\set-event_attributes.dwl')]" />
+				<munit:variables >
+					<munit:variable key="outboundHeaders" value="#[readUrl('classpath://getcheckBalanceabbankcustomerresetwrongpincount\set-event_variable_.dwl')]" />
+				</munit:variables>
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to get:\checkBalance:ab-bank-customer-check-balance-config" doc:id="62b076c0-e513-490d-a27e-f372ce4fd9d8" name="get:\checkBalance:ab-bank-customer-check-balance-config"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="addc7f78-a0ce-49cd-a55e-ef92ec56db25" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import getcheckBalanceabbankcustomerresetwrongpincount::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

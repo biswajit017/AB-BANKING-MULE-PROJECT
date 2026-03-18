@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+    <http:listener-config name="ab-bank-customer-check-balance-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="ab-bank-customer-check-balance-config" api="resource::d2061779-71c3-49b1-972c-993433c6f490:ab-bank-customer-check-balance:1.0.0:raml:zip:ab-bank-customer-check-balance.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <configuration-properties doc:name="Configuration properties" doc:id="bca3cbb4-ac3b-46e8-947f-ec6dad29fdee" file="local.properties" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="d12087ae-7df6-4276-b3df-7e7d893f5893" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.database}" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="e0a1e6a1-c4a8-466a-afd4-82f87ae078eb" >
+		<email:smtp-connection host="${email.host}" port="${email.port}" user="${email.user}" password="${email.password}">
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="ab-bank-customer-check-balance-main">
+        <http:listener config-ref="ab-bank-customer-check-balance-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="ab-bank-customer-check-balance-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="ab-bank-customer-check-balance-console">
+        <http:listener config-ref="ab-bank-customer-check-balance-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="ab-bank-customer-check-balance-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+	<flow name="get:\checkBalance:ab-bank-customer-check-balance-config">
+        <logger level="INFO" doc:name="Start-Logger" doc:id="82b8cbc6-88d7-4c21-a88b-c9c18157df0e" message="Start-Logger"/>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"bank" : attributes.queryParams.bank,&#10;	"accType" : attributes.queryParams.acctType,&#10;	"accountNum" : attributes.queryParams.accountNum,&#10;	"atmPin" : attributes.queryParams.atmPin&#10;}]' doc:name="inputValues" doc:id="c1456064-02ec-4c77-9318-5ef22bf0d726" variableName="inputValues"/>
+		<db:select doc:name="Select-AccNum &amp; Bank" doc:id="5244a5e0-cca3-4a43-b689-f494bf311dc9" config-ref="Database_Config">
+			<db:sql><![CDATA[SELECT * FROM Bank_Transactions
+WHERE custAccNum =:acctNum
+AND bankName =:bankName ;]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"acctNum": attributes.queryParams.accountNum,
+	"bankName": attributes.queryParams.bank
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="c9954f6f-8312-49e7-88b7-6b5b4db99d20" >
+			<when expression='#[sizeOf(payload) &gt;= 1 and payload.accountStatus[0] as String == "Active"]'>
+				<logger level="INFO" doc:name="Record-Found-From-DB-Logger" doc:id="5e916847-593a-4a7c-a46c-576da54d867f" message="------------- RECORD FOUND FROM DB  -------------" />
+				<choice doc:name="Choice" doc:id="49cb5bf6-b7cf-4d95-bb06-828e23c3a115">
+					<when expression="#[vars.inputValues.atmPin == payload.atmPin[0] and (payload.wrongPin[0] == 1 or payload.wrongPin[0] == 2)]">
+						<set-variable value="#[payload.totalBalance[0]]" doc:name="total_balance" doc:id="1dcad964-90e5-42e6-8884-6bc5200c2b99" variableName="total_balance"/>
+						<db:update doc:name="RESET-Wrong-PIN-Count" doc:id="8a40ea2d-6b20-4c3e-9ba1-986f433f906c" config-ref="Database_Config">
+							<db:sql><![CDATA[update  Bank_transactions
+set wrongPin =:wrongPinAttempt
+where bankName =:bankName  and custAccNum =:accNum ;]]></db:sql>
+							<db:input-parameters><![CDATA[#[{
+	"wrongPinAttempt" : 0  ,
+	"accNum": vars.inputValues.accountNum ,
+	"bankName": vars.inputValues.bank
+}]]]></db:input-parameters>
+						</db:update>
+						<ee:transform doc:name="Success-Final-Message-With-Update-Wrong-PIN">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: " Your total balance is " ++ vars.total_balance as String ++ ".00"  ++ " as on " ++ now() as Date as String
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+					</when>
+					<when expression="#[vars.inputValues.atmPin == payload.atmPin[0] and payload.wrongPin[0] == 0]">
+						<logger level="INFO" doc:name="PIN-matched-&amp;-wrongpin-is-0" doc:id="85b0438c-a742-4109-98ed-c63b35f12ad5" message="--------- PIN MATCHED AND WRONG PIN IS 0, NO NEED FOR UPDATAION---------"/>
+						<ee:transform doc:name="Success-Final-Message-Without-Update-Wrong-PIN" doc:id="a1e65af2-6ec9-4b57-809e-31a53765a464" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: " Your total balance is " ++ payload.totalBalance[0] as String ++ ".00"  ++ " as on " ++ now() as Date as String
+} ]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<logger level="INFO" doc:name="Wrong PIN" doc:id="f41f6f63-aa3e-484b-9a23-4a623f948f6d" message="---------- Entered Wrong PIN ----------"/>
+						<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"wrongPin" : payload.wrongPin[0] + 1 ,&#10;	"email" : payload.mailId[0]&#10;}]' doc:name="wrongPinAttempt" doc:id="1b3c34c0-86fc-430d-b6c2-594eac2c9df8" variableName="wrongPinAttempt"/>
+						<choice doc:name="Choice" doc:id="0d6399e9-e11b-43fe-95e1-61cee23faefe">
+							<when expression='#[vars.wrongPinAttempt.wrongPin == 3]'>
+								<logger level="INFO" doc:name="Maximum-Wrong-PIN-Attempt-Reached" doc:id="ae98ebc7-bd5c-4aaa-9a47-249483ffbd68" message="--------- MAXIMUM WRONG PIN ATTEMPT REACHED ---------"/>
+								<db:update doc:name="Update-Status-locked" doc:id="1976a894-2ebe-42d9-af18-161a33be9883" config-ref="Database_Config">
+									<db:sql ><![CDATA[update Bank_transactions
+set wrongPin =:wrongPinAttempt ,
+ accountStatus = 'Locked'
+where bankName =:bankName  and custAccNum =:accNum  ;]]></db:sql>
+									<db:input-parameters ><![CDATA[#[{
+	"wrongPinAttempt" : vars.wrongPinAttempt.wrongPin  ,
+	"bankName" : vars.inputValues.bank,
+	"accNum" : vars.inputValues.accountNum
+}]]]></db:input-parameters>
+								</db:update>
+								<email:send doc:name="Send-Mail-For-Account-Is-Locked" doc:id="ffef4106-9964-4d23-866a-ab943ffe0f62" config-ref="Email_SMTP" fromAddress="${email.user}" subject="Account Locked !">
+									<email:to-addresses>
+										<email:to-address value="#[vars.wrongPinAttempt.email]" />
+									</email:to-addresses>
+									<email:body contentType="text/plain" encoding="UTF-8">
+										<email:content><![CDATA[#[%dw 2.0
+output application/java
+var bank = vars.inputValues.bank 
+---
+"Dear Customer,\n\n
+This is to inform you that your account has been locked due to three failed login attempts.\n\n
+Please reach out to your nearest branch to unlock your account.\n\n
+Best regards,\n " ++ bank]]]></email:content>
+									</email:body>
+								</email:send>
+								<ee:transform doc:name="Account-Locked-MSG" doc:id="6c6b0c0b-37bf-4522-8945-b9a018d6dd81">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Status" : "Maximum Attempts reached. Your Account " ++ vars.inputValues.accountNum ++ " is temporarily locked. Please reach nearest " ++ vars.inputValues.bank ++ " Branch."
+
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+							</when>
+							<otherwise >
+								<logger level="INFO" doc:name="PIN-Login-Attempt-Failed" doc:id="4070bc19-f382-42e8-85b0-566f14281446" message="--------- PIN LOGIN ATTEMPT FAILED ---------"/>
+								<db:update doc:name="Update-Wrong-PIN-Count" doc:id="561b00aa-b127-48c6-a084-f9998ebaa521" config-ref="Database_Config">
+							<db:sql><![CDATA[update  Bank_transactions
+set wrongPin =:wrongPinAttempt
+where bankName =:bankName  and custAccNum =:accNum ;]]></db:sql>
+							<db:input-parameters><![CDATA[#[{
+	"wrongPinAttempt" : vars.wrongPinAttempt.wrongPin  ,
+	"accNum": vars.inputValues.accountNum ,
+	"bankName": vars.inputValues.bank
+}]]]></db:input-parameters>
+						</db:update>
+								<email:send doc:name="Send-Mail-For-Wrong-PIN" doc:id="c46aaec6-331b-4b50-93af-38f968f212ac" config-ref="Email_SMTP" fromAddress="${email.user}" subject="Alert: Failed Transaction Attempt">
+									<email:to-addresses >
+										<email:to-address value="#[vars.wrongPinAttempt.email]" />
+									</email:to-addresses>
+									<email:body contentType="text/plain" encoding="UTF-8" >
+										<email:content ><![CDATA[#[%dw 2.0
+output application/java
+var bank = vars.inputValues.bank 
+var wrongAttempt = (3 - vars.wrongPinAttempt.wrongPin) as String
+---
+"Dear Customer,\n\n
+This is to inform you that a failed attempt happened during the transaction. 
+Please note that your account will be locked after " ++ wrongAttempt ++ " unsuccessful attempts.\n\n 
+We advise you to ensure correct details are entered to avoid further issues.\n\n 
+Best regards,\n " ++ bank]]]></email:content>
+									</email:body>
+								</email:send>
+								<ee:transform doc:name="Wrong-PIN-Alert" doc:id="b8735450-3f9f-4e70-995e-ba4b10d99296" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "Status": "Login attempt failed. You have " ++ (3 - vars.wrongPinAttempt.wrongPin) as String ++ " attempts remaining before your account is locked."
+}
+]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</otherwise>
+						</choice>
+					</otherwise>
+				</choice>
+			</when>
+			<when expression='#[sizeOf(payload) &gt;= 1 and payload.accountStatus[0] as String != "Active"]'>
+				<logger level="INFO" doc:name="Account-Status-Not-Active" doc:id="22ecdcdc-1a2f-42d5-82aa-c724577966d9" message="In-Active Account"/>
+				<ee:transform doc:name="Card-Is-Locked" doc:id="25a8664b-1812-42cf-8189-2db98fadcfd2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Status" : "Account " ++ vars.inputValues.accountNum ++ " temporarily locked. Please visit Nearest " ++ vars.inputValues.bank ++ " Branch."
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Record-Not-Found-Logger" doc:id="77f3d14a-653e-4706-b765-1102b5225443" message="------------- RECORD NOT FOUND -------------"/>
+				<ee:transform doc:name="Record-Not-Found" doc:id="fd9e2e2a-4530-49d6-9e1f-3eaa2adbe528">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Status" : "Account " ++ vars.inputValues.accountNum as String ++ " does not exist. Enter Valid Details..!!!"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+</mule>
