@@ -1,0 +1,1 @@
+"Dear Customer,\n\nWe are pleased to inform you that your deposit has been successfully processed.\n\nBank Name: ICICI\nAccount Number: ACC1127895\nDeposit Amount: 1000\n\nTotal Balance: 321000.00\n\nThank you for banking with us. If you have any questions or require further assistance, please contact our customer support team.\n\nBest regards,\nICICI Customer Service"

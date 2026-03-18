@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+    <http:listener-config name="ab-bank-customer-amt-deposite-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="ab-bank-customer-amt-deposite-config" api="resource::d2061779-71c3-49b1-972c-993433c6f490:ab-bank-customer-amt-deposite:1.0.1:raml:zip:ab-bank-customer-amt-deposite.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <configuration-properties doc:name="Configuration properties" doc:id="9208ef8d-a8f0-40e0-bc66-b385db236e92" file="local.properties" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="86109077-0e75-48ae-a3f1-3da701a71525" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" password="${db.password}" database="${db.database}" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="70d55aa4-78d8-4a09-afec-409ebe22499a" >
+		<email:smtp-connection host="${email.host}" port="${email.port}" user="${email.user}" password="${email.password}" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<flow name="ab-bank-customer-amt-deposite-main">
+        <http:listener config-ref="ab-bank-customer-amt-deposite-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="ab-bank-customer-amt-deposite-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="ab-bank-customer-amt-deposite-console">
+        <http:listener config-ref="ab-bank-customer-amt-deposite-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="ab-bank-customer-amt-deposite-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\deposite:application\json:ab-bank-customer-amt-deposite-config">
+        <logger level="INFO" doc:name="API START" doc:id="c602013c-3ca8-4355-9924-09ec7e1565ac" message="-----------Deposite API Triggered -------------#[payload]"/>
+		<set-variable value="#[%dw 2.0&#10;var inp = []&#10;output application/json&#10;---&#10;inp &lt;&lt; payload reduce ((item, accumulator) -&gt; item )]" doc:name="inputPayload" doc:id="b051cb1a-e583-4344-9b94-870956571767" variableName="inputPayload"/>
+		<!-- [STUDIO:"inDepositeAmt"]<set-variable value="#[payload.depositeAmount&#93;" doc:name="inDepositeAmt" doc:id="c326b3d8-df9b-46a6-acb5-13d41bb270c7" variableName="inDepositeAmt"/> [STUDIO] -->
+		<db:select doc:name="Select_Data" doc:id="a525f323-a6e0-4b7a-8b30-772d70f6c91a" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from Bank_Transactions where custAccNum =:bankAccNum and bankName =:bankType;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	bankAccNum : payload.accountNum ,
+	bankType : payload.bank 
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="31dce3d6-dfd7-4f90-8788-af889ddba096" >
+			<when expression="#[sizeOf(payload)&gt;=1]">
+				<!-- [STUDIO:"Record Check"]<logger level="INFO" doc:name="Record Check" doc:id="7b3c4424-d27a-4321-8456-05d67e345dda" message="&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-Record Found &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;- #[payload&#93;" /> [STUDIO] -->
+				<logger level="INFO" doc:name="Sms Logger1" doc:id="424eb737-5309-4728-890f-dcf98274582d" message="------------After Select Conn ----------" />
+				<logger level="INFO" doc:name="Payoad Print Logger" doc:id="369bb621-ec7c-4eb6-acfa-68633cbda0f1" message="#[payload]"/>
+				<set-variable value="#[{&#10;	totalBalance : payload.totalBalance ,&#10;	mailId : payload.mailId&#10;}]" doc:name="inpPayloadEmail" doc:id="93938cff-6273-4e9a-a91e-dfbda8d574e6" variableName="inpPayloadEmail" />
+				<db:update doc:name="Update_DB" doc:id="391721f2-ad2e-4639-982c-612bde88e81b" config-ref="Database_Config">
+					<db:sql ><![CDATA[update Bank_Transactions
+set totalBalance =:amountDeposite
+where custAccNum =:bankAcctNum and bankName =:bankType;]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	"amountDeposite" : (payload[0].totalBalance as Number) + (vars.inputPayload.depositeAmount as Number) ,
+	"bankAcctNum" : payload[0].custAccNum ,
+	"bankType" : payload[0].bankName
+}]]]></db:input-parameters>
+				</db:update>
+				<logger level="INFO" doc:name="Variable  Logger" doc:id="ba76e995-5daf-4a37-8ef4-1ac00ea4ae19" message="------------After Update Conn ---------- #[payload]"/>
+				<logger level="INFO" doc:name="Variable Print Logger" doc:id="d602c7d1-0056-4acb-9e18-6bad4155a141" message='#[%dw 2.0&#10;output application/java&#10;---&#10;vars.inpPayloadEmail.totalBalance[0] as Number + vars.inputPayload.depositeAmount as Number]'/>
+				<!-- [STUDIO:"totalBalance"]<set-variable value="#[%dw 2.0&#10;output application/java&#10;&#45;&#45;-&#10;vars.inpPayloadEmail.totalBalance[0&#93; as Number + vars.inputPayload.depositeAmount as Number&#93;" doc:name="totalBalance" doc:id="e7c2dc5c-8f52-426e-a477-37ca62964102" variableName="totalBalance"/> [STUDIO] -->
+				<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	totalBalance : vars.inpPayloadEmail.totalBalance[0] as Number + vars.inputPayload.depositeAmount as Number,&#10;	mailId : vars.inpPayloadEmail.mailId[0]&#10;}]" doc:name="Var To Set Payload" doc:id="2f3bf670-b225-4fc2-ac5b-2cddc5687ba2" />
+				<flow-ref doc:name="Flow Reference" doc:id="d523e089-31ad-41a6-906c-7f951869950c" name="ab-bank-customer-amt-depositeSub_Flow"/>
+				<ee:transform doc:name="Success MSG">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "Amount deposit successfully done for the Account Number " ++ vars.inputPayload.accountNum as String ++ " on " ++ vars.inputPayload.bank as String 
+  } as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Record Not Found" doc:id="a00e2173-e18c-4153-a276-16402187f14d" message="Record Not Found"/>
+				<ee:transform doc:name="Record Not Found MSG" doc:id="7e468fc6-e494-496a-9b99-e8eb0efbb633" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"Your Account Number- " ++ vars.inputPayload.accountNum as String ++"Does Not Exist In The Database! Please Try With Different Account Number..." ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+	<sub-flow name="ab-bank-customer-amt-depositeSub_Flow" doc:id="3d4c609d-6eca-4ed3-8414-504ceab856c7" >
+		<logger level="INFO" doc:name="Logger-Start-Mail" doc:id="dc692141-5874-4a50-85f5-2362754f893c" message="Mail Started "/>
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;var bank = vars.inputPayload.bank as String&#10;var accountNum = vars.inputPayload.accountNum as String&#10;var depositeAmount = vars.inputPayload.depositeAmount as String&#10;var totalBalance = payload.totalBalance as Number&#10;&#10;---&#10;"Dear Customer,\n\n" ++&#10;"We are pleased to inform you that your deposit has been successfully processed.\n\n" ++&#10;"Bank Name: " ++ bank ++ "\n" ++&#10;"Account Number: " ++ accountNum ++ "\n" ++&#10;"Deposit Amount: " ++ depositeAmount ++ "\n\n" ++&#10;"Total Balance: " ++ totalBalance ++ ".00" ++ "\n\n" ++&#10;"Thank you for banking with us. If you have any questions or require further assistance, please contact our customer support team.\n\n" ++&#10;"Best regards,\n" ++&#10;bank ++ " Customer Service"]' doc:name="Email_Body" doc:id="649e57fa-0393-4da3-9e69-e26e3b3b276d" variableName="emailBody"/>
+		<email:send doc:name="Send_Mail" doc:id="d4d0dd1a-7a08-4d59-add9-073b820cab78" config-ref="Email_SMTP" fromAddress="${email.user}" subject='#[" Confirmation of Deposit Transaction –  "  ++ vars.inputPayload.bank as String  ++ " A/c"]'>
+			<email:to-addresses >
+				<email:to-address value="#[payload.mailId]" />
+			</email:to-addresses>
+			<email:body contentType="text/plain" encoding="UTF-8" >
+				<email:content ><![CDATA[#[vars.emailBody]]]></email:content>
+			</email:body>
+		</email:send>
+		<logger level="INFO" doc:name="End_Email_Logger" doc:id="29d89756-8228-491f-8d7b-258d5421f781" message="-----THE MAIL HAS BEEN SENT TO THE RECIPIENT’S EMAIL ADDRESS.-----" />
+	</sub-flow>
+</mule>
